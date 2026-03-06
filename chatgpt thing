@@ -1,0 +1,31 @@
+-- Lua Capture Logger (File Version)
+
+local oldLoadstring = loadstring
+local oldHttpGet = game.HttpGet
+
+local fileCount = 0
+
+local function saveToFile(prefix, content)
+    fileCount = fileCount + 1
+    local filename = prefix .. "_" .. fileCount .. ".lua"
+    writefile(filename, content)
+    print("Saved to file:", filename)
+end
+
+-- Capture loadstring
+getgenv().loadstring = function(code)
+    saveToFile("loadstring_capture", code)
+    return oldLoadstring(code)
+end
+
+-- Capture HttpGet
+game.HttpGet = function(self, url)
+    print("Fetching:", url)
+    local result = oldHttpGet(self, url)
+
+    saveToFile("httpget_capture", result)
+
+    return result
+end
+
+print("Lua file capture logger enabled")
