@@ -1,13 +1,32 @@
--- loader.lua
--- Simple GitHub-ready Lua script
+-- capture.lua
+-- Lua Script Capture Logger
 
-print("Loader started")
+print("Capture logger enabled")
 
-local message = "Script loaded successfully from GitHub!"
-print(message)
+local oldLoadstring = loadstring
+local oldHttpGet = game.HttpGet
+local count = 0
 
-local function hello()
-    print("Hello from the GitHub script!")
+local function save(prefix, content)
+    count = count + 1
+    local name = prefix .. "_" .. count .. ".lua"
+    writefile(name, content)
+    print("Saved:", name)
 end
 
-hello()
+-- Hook loadstring
+getgenv().loadstring = function(code)
+    save("loadstring", code)
+    return oldLoadstring(code)
+end
+
+-- Hook HttpGet
+game.HttpGet = function(self, url)
+    print("Fetching:", url)
+
+    local result = oldHttpGet(self, url)
+
+    save("httpget", result)
+
+    return result
+end
